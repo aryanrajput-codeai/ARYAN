@@ -10,11 +10,13 @@ import {
   CheckCircle2,
   Phone,
   Search,
+  Bell,
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { Subscription, Reminder } from '../types';
 import { formatDateDisplay, formatCurrency, getDaysRemaining } from '../lib/dateUtils';
 import { RenewSubscriptionModal } from '../components/subscriptions/RenewSubscriptionModal';
+import { NotificationTemplatesModal } from '../components/notifications/NotificationTemplatesModal';
 import { EmptyState } from '../components/common/EmptyState';
 import { useToast } from '../contexts/ToastContext';
 
@@ -28,6 +30,7 @@ export const RenewalsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RenewalTab>('EXPIRING_30');
   const [searchQuery, setSearchQuery] = useState('');
   const [renewSub, setRenewSub] = useState<Subscription | null>(null);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
 
   // Filter subscriptions according to tabs
   const tabCounts = useMemo(() => {
@@ -123,6 +126,14 @@ export const RenewalsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsTemplatesOpen(true)}
+            className="btn-secondary px-3.5 py-2 text-xs inline-flex items-center gap-1.5"
+            title="Configure WhatsApp & Email Expiry Reminder Templates"
+          >
+            <Bell className="w-4 h-4 text-indigo-600" />
+            <span>Notice Templates</span>
+          </button>
           <button
             onClick={() => {
               if (displayedSubscriptions.length === 0) {
@@ -351,11 +362,15 @@ export const RenewalsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Renewal Modal */}
+      {/* Modals */}
       <RenewSubscriptionModal
         isOpen={Boolean(renewSub)}
         onClose={() => setRenewSub(null)}
         subscription={renewSub}
+      />
+      <NotificationTemplatesModal
+        isOpen={isTemplatesOpen}
+        onClose={() => setIsTemplatesOpen(false)}
       />
     </div>
   );

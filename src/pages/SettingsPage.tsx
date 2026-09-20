@@ -294,6 +294,150 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* 5. Database Backup & Data Portability */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Database className="w-4 h-4 text-indigo-600" />
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+            One-Click Database Backup & Restore Engine
+          </h2>
+        </div>
+
+        <p className="text-xs text-slate-600">
+          Export your entire WebRajya database (clients, licenses, payments, products) into an encrypted JSON backup file, or export tabular CSV data for offline Excel auditing.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          {/* JSON Backup & Restore Box */}
+          <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-3">
+            <div>
+              <h3 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">Complete JSON Database Snapshot</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">Full backup containing all accounts, contracts, and payment history.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const backupData = {
+                    clients: JSON.parse(localStorage.getItem('webrajya_clients') || '[]'),
+                    subscriptions: JSON.parse(localStorage.getItem('webrajya_subscriptions') || '[]'),
+                    payments: JSON.parse(localStorage.getItem('webrajya_payments') || '[]'),
+                    products: JSON.parse(localStorage.getItem('webrajya_products') || '[]'),
+                    settings: JSON.parse(localStorage.getItem('webrajya_settings') || '{}'),
+                    timestamp: new Date().toISOString(),
+                    version: '2.0.0',
+                  };
+                  const jsonStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+                  const link = document.createElement('a');
+                  link.setAttribute('href', jsonStr);
+                  link.setAttribute('download', `WebRajya_DB_Backup_${new Date().toISOString().slice(0, 10)}.json`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  addToast('Database snapshot exported successfully!', 'success');
+                }}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
+              >
+                Download .JSON Backup
+              </button>
+
+              <label className="px-3 py-1.5 bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-lg cursor-pointer transition-colors">
+                Restore .JSON File
+                <input
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      try {
+                        const data = JSON.parse(event.target?.result as string);
+                        if (data.clients) localStorage.setItem('webrajya_clients', JSON.stringify(data.clients));
+                        if (data.subscriptions) localStorage.setItem('webrajya_subscriptions', JSON.stringify(data.subscriptions));
+                        if (data.payments) localStorage.setItem('webrajya_payments', JSON.stringify(data.payments));
+                        if (data.products) localStorage.setItem('webrajya_products', JSON.stringify(data.products));
+                        if (data.settings) localStorage.setItem('webrajya_settings', JSON.stringify(data.settings));
+                        addToast('Database restored successfully! Reloading page...', 'success');
+                        setTimeout(() => window.location.reload(), 1200);
+                      } catch (err) {
+                        addToast('Failed to parse backup JSON file', 'error');
+                      }
+                    };
+                    reader.readAsText(file);
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Table CSV Exports Box */}
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <div>
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Tabular CSV Data Exports</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">Download standalone spreadsheet files for Microsoft Excel.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const clientsData = JSON.parse(localStorage.getItem('webrajya_clients') || '[]');
+                  const headers = ['Business Name', 'Owner', 'Phone', 'Email', 'City', 'State', 'GSTIN', 'Status'];
+                  const rows = clientsData.map((c: any) => [
+                    `"${c.business_name || ''}"`,
+                    `"${c.owner_name || ''}"`,
+                    `"${c.phone || ''}"`,
+                    `"${c.email || ''}"`,
+                    `"${c.city || ''}"`,
+                    `"${c.state || ''}"`,
+                    `"${c.gstin || ''}"`,
+                    c.status,
+                  ]);
+                  const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r: any) => r.join(','))].join('\n');
+                  const link = document.createElement('a');
+                  link.setAttribute('href', encodeURI(csv));
+                  link.setAttribute('download', `WebRajya_Clients_${new Date().toISOString().slice(0, 10)}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  addToast('Exported Clients CSV', 'success');
+                }}
+                className="px-2.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+              >
+                Clients CSV
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const paymentsData = JSON.parse(localStorage.getItem('webrajya_payments') || '[]');
+                  const headers = ['Receipt No', 'Payment Date', 'Amount', 'Method', 'Reference', 'Status'];
+                  const rows = paymentsData.map((p: any) => [
+                    `"${p.receipt_number || ''}"`,
+                    p.payment_date,
+                    p.amount,
+                    p.payment_method,
+                    `"${p.transaction_reference || ''}"`,
+                    p.status,
+                  ]);
+                  const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r: any) => r.join(','))].join('\n');
+                  const link = document.createElement('a');
+                  link.setAttribute('href', encodeURI(csv));
+                  link.setAttribute('download', `WebRajya_Payments_${new Date().toISOString().slice(0, 10)}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  addToast('Exported Payments CSV', 'success');
+                }}
+                className="px-2.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+              >
+                Payments CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 5. Audit Log */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs">
         <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">

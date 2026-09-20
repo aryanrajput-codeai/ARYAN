@@ -9,6 +9,7 @@ import {
   MessageCircle,
   FileText,
   Trash2,
+  Bell,
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { SubscriptionStatus, Subscription, Product } from '../types';
@@ -18,6 +19,7 @@ import { SubscriptionFormModal } from '../components/subscriptions/SubscriptionF
 import { RenewSubscriptionModal } from '../components/subscriptions/RenewSubscriptionModal';
 import { PaymentFormModal } from '../components/payments/PaymentFormModal';
 import { InvoiceModal } from '../components/payments/InvoiceModal';
+import { NotificationTemplatesModal } from '../components/notifications/NotificationTemplatesModal';
 import { EmptyState } from '../components/common/EmptyState';
 
 export const SubscriptionsPage: React.FC = () => {
@@ -32,6 +34,7 @@ export const SubscriptionsPage: React.FC = () => {
 
   // Modals state
   const [isNewSubOpen, setIsNewSubOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [renewSub, setRenewSub] = useState<Subscription | null>(null);
   const [paymentSub, setPaymentSub] = useState<Subscription | null>(null);
   const [invoiceSub, setInvoiceSub] = useState<Subscription | null>(null);
@@ -126,6 +129,14 @@ export const SubscriptionsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={() => setIsTemplatesOpen(true)}
+            className="btn-secondary px-3.5 py-2 text-xs inline-flex items-center gap-1.5"
+            title="Configure WhatsApp & Email Expiry Reminder Templates"
+          >
+            <Bell className="w-4 h-4 text-indigo-600" />
+            <span>Notice Templates</span>
+          </button>
           <button
             onClick={handleExportCSV}
             className="btn-secondary px-3.5 py-2 text-xs inline-flex items-center gap-1.5"
@@ -381,6 +392,10 @@ export const SubscriptionsPage: React.FC = () => {
         isOpen={Boolean(invoiceSub)}
         onClose={() => setInvoiceSub(null)}
         subscription={invoiceSub}
+      />
+      <NotificationTemplatesModal
+        isOpen={isTemplatesOpen}
+        onClose={() => setIsTemplatesOpen(false)}
       />
     </div>
   );

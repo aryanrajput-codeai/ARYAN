@@ -18,6 +18,7 @@ import { ProductsPage } from './pages/ProductsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
+import { ClientPortalPage } from './pages/ClientPortalPage';
 
 export default function App() {
   return (
@@ -27,8 +28,9 @@ export default function App() {
           <DataProvider>
             <BrowserRouter>
               <Routes>
-                {/* Public Authentication Route */}
+                {/* Public Authentication & Portal Routes */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/portal/:clientId" element={<ClientPortalPage />} />
 
                 {/* Protected Application Routes */}
                 <Route

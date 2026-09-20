@@ -16,8 +16,13 @@ import {
   Clock,
   Printer,
   MessageCircle,
+  Share2,
+  Check,
+  Copy,
+  PieChart,
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { useToast } from '../contexts/ToastContext';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { formatCurrency, formatDateDisplay, getDaysRemaining } from '../lib/dateUtils';
 import { SubscriptionFormModal } from '../components/subscriptions/SubscriptionFormModal';
@@ -32,6 +37,7 @@ export const ClientDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getClientById, events, cancelSubscription, sendReminder } = useData();
+  const { addToast } = useToast();
 
   const client = getClientById(id || '');
 
@@ -42,6 +48,7 @@ export const ClientDetailPage: React.FC = () => {
   const [paymentSubId, setPaymentSubId] = useState<string | undefined>(undefined);
   const [renewSub, setRenewSub] = useState<Subscription | null>(null);
   const [viewReceipt, setViewReceipt] = useState<Payment | null>(null);
+  const [portalCopied, setPortalCopied] = useState(false);
 
   if (!client) {
     return (
@@ -65,6 +72,14 @@ export const ClientDetailPage: React.FC = () => {
 
   const clientSubscriptions: Subscription[] = client.subscriptions || [];
   const clientPayments: Payment[] = client.payments || [];
+
+  const handleCopyPortalLink = () => {
+    const portalUrl = `${window.location.origin}/portal/${client.id}`;
+    navigator.clipboard.writeText(portalUrl);
+    setPortalCopied(true);
+    addToast('Client self-service portal link copied to clipboard!', 'success');
+    setTimeout(() => setPortalCopied(false), 2500);
+  };
 
   const handleSendReminder = async (sub: Subscription) => {
     if (!client.phone) {
@@ -90,6 +105,17 @@ export const ClientDetailPage: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleCopyPortalLink}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition-colors border ${
+              portalCopied
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                : 'bg-white border-slate-300 hover:bg-slate-50 text-slate-700'
+            }`}
+          >
+            {portalCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5 text-indigo-600" />}
+            <span>{portalCopied ? 'Portal Link Copied!' : 'Share Portal Link'}</span>
+          </button>
           <button
             onClick={() => setIsEditClientOpen(true)}
             className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold shadow-2xs transition-colors"
@@ -292,6 +318,87 @@ export const ClientDetailPage: React.FC = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      {/* Partial Payment & Installment Ledger Summary */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <PieChart className="w-4 h-4 text-indigo-600" />
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
+              Contract Installments & Settlement Ledger
+            </h2>
+          </div>
+          <span className="text-xs text-slate-500">
+            Total Settled Rate:{' '}
+            <strong className="text-slate-900 font-mono">
+              {(() => {
+                const totalContract = clientSubscriptions.reduce((sum, s) => sum + (s.amount || 0), 0);
+                const totalPaid = clientPayments
+                  .filter((p) => p.status !== 'VOIDED')
+                  .reduce((sum, p) => sum + (p.amount || 0), 0);
+                if (totalContract === 0) return '100%';
+                return `${Math.min(100, Math.round((totalPaid / totalContract) * 100))}%`;
+              })()}
+            </strong>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Active Contracts</p>
+            <p className="text-lg font-bold font-mono text-slate-900 mt-1">
+              {formatCurrency(clientSubscriptions.reduce((sum, s) => sum + (s.amount || 0), 0))}
+            </p>
+          </div>
+          <div className="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100">
+            <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">Total Payments Collected</p>
+            <p className="text-lg font-bold font-mono text-emerald-600 mt-1">
+              {formatCurrency(
+                clientPayments
+                  .filter((p) => p.status !== 'VOIDED')
+                  .reduce((sum, p) => sum + (p.amount || 0), 0)
+              )}
+            </p>
+          </div>
+          <div className="p-3 bg-rose-50/50 rounded-lg border border-rose-100">
+            <p className="text-[11px] font-semibold text-rose-700 uppercase tracking-wider">Remaining Balance Due</p>
+            <p className="text-lg font-bold font-mono text-rose-600 mt-1">
+              {formatCurrency(client.total_outstanding || 0)}
+            </p>
+          </div>
+        </div>
+
+        {/* Per Subscription Progress Bars */}
+        {clientSubscriptions.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <p className="text-xs font-semibold text-slate-700">Installment Breakdown per Product:</p>
+            {clientSubscriptions.map((sub) => {
+              const totalAmount = sub.amount || 0;
+              const due = sub.outstanding_balance || 0;
+              const paid = Math.max(0, totalAmount - due);
+              const percent = totalAmount > 0 ? Math.min(100, Math.round((paid / totalAmount) * 100)) : 100;
+              return (
+                <div key={sub.id} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-800">{sub.product?.name}</span>
+                    <span className="font-mono text-[11px] text-slate-500">
+                      Paid: <strong className="text-emerald-600">{formatCurrency(paid)}</strong> / {formatCurrency(totalAmount)} ({percent}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        percent === 100 ? 'bg-emerald-500' : percent > 50 ? 'bg-indigo-500' : 'bg-amber-500'
+                      }`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

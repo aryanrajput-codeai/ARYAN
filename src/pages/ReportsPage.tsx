@@ -55,6 +55,25 @@ export const ReportsPage: React.FC = () => {
     });
   }, [products, payments, subscriptions]);
 
+  // MRR & ARR Analytics calculations
+  const activeSubsList = subscriptions.filter(
+    (s: Subscription) => s.status === 'ACTIVE' || s.status === 'EXPIRING_SOON'
+  );
+  
+  const monthlyRecurringRevenue = useMemo(() => {
+    return activeSubsList.reduce((acc, s) => {
+      const months = s.plan?.duration_months || 12;
+      return acc + (s.amount / months);
+    }, 0);
+  }, [activeSubsList]);
+
+  const annualRunRate = monthlyRecurringRevenue * 12;
+
+  const totalClientsCount = clients.length;
+  const activeClientsCount = clients.filter((c: Client) => c.status === 'ACTIVE').length;
+  const retentionRate = totalClientsCount > 0 ? ((activeClientsCount / totalClientsCount) * 100).toFixed(1) : '100';
+  const churnRate = (100 - parseFloat(retentionRate)).toFixed(1);
+
   // Total collections
   const totalCollections = payments.reduce((acc: number, p: Payment) => acc + p.amount, 0);
 
@@ -96,10 +115,10 @@ export const ReportsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            Financial & Performance Reports
+            Financial & MRR/ARR Performance Analytics
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Revenue trends, product portfolio contribution, and accounts receivable tracking
+            Real-time MRR, ARR, churn rate metrics, product leaderboard, and accounts receivable ledger
           </p>
         </div>
 
@@ -112,12 +131,23 @@ export const ReportsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* KPI Ribbon */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* KPI Ribbon (4 Widgets) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Revenue Realized</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Monthly Recurring (MRR)</span>
             <TrendingUp className="w-4 h-4 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-slate-900 font-mono">
+            {formatCurrency(Math.round(monthlyRecurringRevenue))}
+          </p>
+          <p className="text-[11px] text-emerald-600 font-medium mt-1">ARR: {formatCurrency(Math.round(annualRunRate))}/yr</p>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-1">
+            <span className="text-xs font-semibold uppercase tracking-wider">Total Realized Revenue</span>
+            <BarChart3 className="w-4 h-4 text-indigo-600" />
           </div>
           <p className="text-2xl font-bold text-slate-900 font-mono">
             {formatCurrency(totalCollections)}
@@ -134,20 +164,20 @@ export const ReportsPage: React.FC = () => {
             {formatCurrency(totalDues)}
           </p>
           <p className="text-[11px] text-slate-400 mt-1">
-            Across {clientsWithDues.length} partial/pending subscriptions
+            Across {clientsWithDues.length} partial/pending accounts
           </p>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider">Active Client Base</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Client Retention / Churn</span>
             <Package className="w-4 h-4 text-indigo-600" />
           </div>
           <p className="text-2xl font-bold text-slate-900 font-mono">
-            {clients.filter((c: Client) => c.status === 'ACTIVE').length} / {clients.length}
+            {retentionRate}% <span className="text-xs text-slate-400 font-normal">retention</span>
           </p>
-          <p className="text-[11px] text-slate-400 mt-1">
-            {subscriptions.filter((s: Subscription) => s.status === 'ACTIVE').length} active licenses
+          <p className="text-[11px] text-slate-500 mt-1">
+            Churn Rate: <strong className="text-rose-600">{churnRate}%</strong> ({activeClientsCount}/{totalClientsCount} Active)
           </p>
         </div>
       </div>
