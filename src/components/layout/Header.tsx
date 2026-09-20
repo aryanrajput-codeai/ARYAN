@@ -23,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearchEx
   const { subscriptions, isSupabaseLive } = useData();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [areNotificationsCleared, setAreNotificationsCleared] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -31,7 +32,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearchEx
   const expiredCount = subscriptions.filter((s) => s.status === 'EXPIRED').length;
   const pendingPaymentsCount = subscriptions.filter((s) => (s.outstanding_balance || 0) > 0).length;
 
-  const totalNotifications = expiringSoonCount + expiredCount + pendingPaymentsCount;
+  const rawTotal = expiringSoonCount + expiredCount + pendingPaymentsCount;
+  const totalNotifications = areNotificationsCleared ? 0 : rawTotal;
 
   // Close notifications on outside click
   useEffect(() => {
@@ -83,8 +85,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearchEx
             <span>Today: <strong className="font-semibold text-[#171A21]">{formatDateDisplay(getTodayISO())}</strong></span>
           </div>
 
-
-
           {/* Notification Center */}
           <div className="relative" ref={notifRef}>
             <button
@@ -116,13 +116,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearchEx
                     <h4 className="text-xs font-bold text-[#171A21] uppercase tracking-wider">
                       Notifications
                     </h4>
-                    <span className="text-[11px] font-semibold text-[#5B5CE2] bg-[#EEF0FF] px-2 py-0.5 rounded-md">
-                      {totalNotifications} urgent items
-                    </span>
+                    {rawTotal > 0 && !areNotificationsCleared && (
+                      <button
+                        onClick={() => setAreNotificationsCleared(true)}
+                        className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    )}
                   </div>
 
                   <div className="divide-y divide-[#E7E9EE] max-h-72 overflow-y-auto py-1">
-                    {expiringSoonCount > 0 && (
+                    {!areNotificationsCleared && expiringSoonCount > 0 && (
                       <button
                         onClick={() => {
                           setIsNotificationsOpen(false);
@@ -142,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearchEx
                       </button>
                     )}
 
-                    {expiredCount > 0 && (
+                    {!areNotificationsCleared && expiredCount > 0 && (
                       <button
                         onClick={() => {
                           setIsNotificationsOpen(false);
@@ -162,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearchEx
                       </button>
                     )}
 
-                    {pendingPaymentsCount > 0 && (
+                    {!areNotificationsCleared && pendingPaymentsCount > 0 && (
                       <button
                         onClick={() => {
                           setIsNotificationsOpen(false);
@@ -182,9 +187,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearchEx
                       </button>
                     )}
 
-                    {totalNotifications === 0 && (
+                    {(totalNotifications === 0 || areNotificationsCleared) && (
                       <div className="p-4 text-center text-xs text-[#9AA2B1]">
-                        All subscriptions and payments are up to date!
+                        {areNotificationsCleared ? 'Notifications cleared!' : 'All subscriptions and payments are up to date!'}
                       </div>
                     )}
                   </div>
