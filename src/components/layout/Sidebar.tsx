@@ -13,6 +13,8 @@ import {
   LogOut,
   ShieldCheck,
   UserCheck,
+  FileText,
+  Headphones,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSupabaseConfig } from '../../lib/supabase';
@@ -31,6 +33,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     { to: '/subscriptions', label: 'Subscriptions', icon: CreditCard },
     { to: '/payments', label: 'Payments', icon: Receipt },
     { to: '/renewals', label: 'Renewals', icon: RefreshCw },
+    { to: '/proposals', label: 'Proposals', icon: FileText },
+    { to: '/tickets', label: 'Support Desk', icon: Headphones },
     { to: '/products', label: 'Products & Plans', icon: Package },
     { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/settings', label: 'Settings', icon: Settings },

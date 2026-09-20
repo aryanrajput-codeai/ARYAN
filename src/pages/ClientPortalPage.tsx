@@ -8,7 +8,7 @@ import { Subscription, Payment } from '../types';
 
 export const ClientPortalPage: React.FC = () => {
   const { clientId } = useParams<{ clientId: string }>();
-  const { clients, subscriptions, payments, settings } = useData();
+  const { clients, subscriptions, payments, settings, tickets, addSupportTicket } = useData();
 
   const [selectedInvoice, setSelectedInvoice] = useState<Payment | null>(null);
   const [selectedSubInvoice, setSelectedSubInvoice] = useState<Subscription | null>(null);
@@ -226,6 +226,72 @@ export const ClientPortalPage: React.FC = () => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Support & Maintenance Desk */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Shield className="w-4 h-4 text-indigo-600" /> Technical Support & Maintenance Desk
+            </h2>
+            <button
+              onClick={() => {
+                const subject = prompt('Briefly describe your support issue or request:');
+                if (!subject) return;
+                const desc = prompt('Detailed description of what you need help with:');
+                if (!desc) return;
+                addSupportTicket({
+                  client_id: client.id,
+                  subject,
+                  description: desc,
+                  priority: 'MEDIUM',
+                });
+              }}
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs inline-flex items-center gap-1"
+            >
+              <span>+ Create Support Ticket</span>
+            </button>
+          </div>
+
+          {(() => {
+            const clientTickets = tickets.filter((t) => t.client_id === clientId);
+            if (clientTickets.length === 0) {
+              return (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  No support tickets reported. Need technical help? Click "+ Create Support Ticket" above.
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-3">
+                {clientTickets.map((t) => (
+                  <div key={t.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-slate-900">Ticket #{t.ticket_number}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          t.status === 'RESOLVED'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : t.status === 'IN_PROGRESS'
+                            ? 'bg-indigo-100 text-indigo-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}
+                      >
+                        {t.status}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-slate-800">{t.subject}</p>
+                    <p className="text-xs text-slate-600">{t.description}</p>
+                    {t.admin_reply && (
+                      <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-900">
+                        <strong>WebRajya Admin Reply:</strong> {t.admin_reply}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         <div className="text-center text-xs text-slate-400 font-mono pt-4">

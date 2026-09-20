@@ -20,6 +20,10 @@ import {
   Check,
   Copy,
   PieChart,
+  HeartPulse,
+  Upload,
+  Trash2,
+  Download,
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { useToast } from '../contexts/ToastContext';
@@ -31,12 +35,21 @@ import { RenewSubscriptionModal } from '../components/subscriptions/RenewSubscri
 import { ReceiptModal } from '../components/payments/ReceiptModal';
 import { ClientFormModal } from '../components/clients/ClientFormModal';
 import { ClientTimeline } from '../components/clients/ClientTimeline';
+import { DocumentUploadModal } from '../components/documents/DocumentUploadModal';
 import { Subscription, Payment } from '../types';
 
 export const ClientDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getClientById, events, cancelSubscription, sendReminder } = useData();
+  const {
+    getClientById,
+    events,
+    cancelSubscription,
+    sendReminder,
+    getClientHealthScore,
+    clientDocuments,
+    deleteClientDocument,
+  } = useData();
   const { addToast } = useToast();
 
   const client = getClientById(id || '');
@@ -45,6 +58,7 @@ export const ClientDetailPage: React.FC = () => {
   const [isEditClientOpen, setIsEditClientOpen] = useState(false);
   const [isNewSubOpen, setIsNewSubOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
   const [paymentSubId, setPaymentSubId] = useState<string | undefined>(undefined);
   const [renewSub, setRenewSub] = useState<Subscription | null>(null);
   const [viewReceipt, setViewReceipt] = useState<Payment | null>(null);
@@ -151,11 +165,29 @@ export const ClientDetailPage: React.FC = () => {
               <Building className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-xl font-bold tracking-tight text-slate-900">
                   {client.business_name}
                 </h1>
                 <StatusBadge status={client.status} size="sm" />
+                {(() => {
+                  const health = getClientHealthScore(client.id);
+                  return (
+                    <span
+                      title={health.reasons.join(' • ')}
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border cursor-help ${
+                        health.level === 'HEALTHY'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : health.level === 'WARNING'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-rose-50 text-rose-700 border-rose-200 animate-pulse'
+                      }`}
+                    >
+                      <HeartPulse className="w-3.5 h-3.5" />
+                      <span>{health.score}/100 {health.level === 'HEALTHY' ? 'Healthy' : health.level === 'WARNING' ? 'Warning' : 'High Risk'}</span>
+                    </span>
+                  );
+                })()}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
                 Primary Contact: <strong className="text-slate-800">{client.owner_name}</strong>
@@ -501,6 +533,65 @@ export const ClientDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Digital Contracts & SLA Documents Section */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-indigo-600" />
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
+              Signed Contracts, Agreements & SLA Files
+            </h2>
+          </div>
+          <button
+            onClick={() => setIsDocModalOpen(true)}
+            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-2xs inline-flex items-center gap-1 transition-colors"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Upload Document</span>
+          </button>
+        </div>
+
+        {(() => {
+          const docs = clientDocuments.filter((d) => d.client_id === client.id);
+          if (docs.length === 0) {
+            return (
+              <div className="p-6 text-center text-xs text-slate-400">
+                No signed contracts or SLA documents attached to this client file yet.
+              </div>
+            );
+          }
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {docs.map((doc) => (
+                <div key={doc.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+                  <div className="truncate">
+                    <p className="font-bold text-xs text-slate-800 truncate">{doc.name}</p>
+                    <p className="text-[11px] text-slate-400 font-mono">{doc.file_type} • {formatDateDisplay(doc.uploaded_at)}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <a
+                      href={doc.file_data}
+                      download={doc.name}
+                      className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded"
+                      title="Download Document"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                    <button
+                      onClick={() => deleteClientDocument(doc.id)}
+                      className="p-1.5 text-rose-500 hover:bg-rose-50 rounded"
+                      title="Delete Document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </div>
+
       {/* Modals */}
       <ClientFormModal
         isOpen={isEditClientOpen}
@@ -530,6 +621,11 @@ export const ClientDetailPage: React.FC = () => {
         isOpen={Boolean(viewReceipt)}
         onClose={() => setViewReceipt(null)}
         payment={viewReceipt}
+      />
+      <DocumentUploadModal
+        isOpen={isDocModalOpen}
+        onClose={() => setIsDocModalOpen(false)}
+        clientId={client.id}
       />
     </div>
   );

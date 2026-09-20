@@ -11,6 +11,9 @@ import {
   SubscriptionEventType,
   BusinessSettings,
   PaymentMethod,
+  Proposal,
+  SupportTicket,
+  ClientDocument,
 } from '../types';
 import { supabase, getSupabaseConfig } from '../lib/supabase';
 import {
@@ -109,6 +112,9 @@ interface DataContextType {
   events: SubscriptionEvent[];
   notes: ClientNote[];
   settings: BusinessSettings;
+  proposals: Proposal[];
+  tickets: SupportTicket[];
+  clientDocuments: ClientDocument[];
   isSupabaseLive: boolean;
   isLoading: boolean;
 
@@ -140,6 +146,22 @@ interface DataContextType {
   dismissReminder: (id: string) => Promise<void>;
   markReminderSent: (id: string) => Promise<void>;
   updateSettings: (newSettings: Partial<BusinessSettings>) => void;
+
+  // Next-Gen Feature Actions
+  addProposal: (proposalData: Omit<Proposal, 'id' | 'created_at' | 'updated_at' | 'proposal_number'>) => Promise<Proposal>;
+  updateProposal: (id: string, updates: Partial<Proposal>) => Promise<void>;
+  deleteProposal: (id: string) => Promise<void>;
+  convertProposalToSubscription: (proposalId: string, startDate: string) => Promise<void>;
+
+  addSupportTicket: (ticketData: Omit<SupportTicket, 'id' | 'ticket_number' | 'created_at' | 'updated_at' | 'status'>) => Promise<SupportTicket>;
+  updateTicketStatus: (id: string, status: any, admin_reply?: string) => Promise<void>;
+  deleteSupportTicket: (id: string) => Promise<void>;
+
+  addClientDocument: (docData: Omit<ClientDocument, 'id' | 'uploaded_at'>) => Promise<ClientDocument>;
+  deleteClientDocument: (id: string) => Promise<void>;
+
+  getClientHealthScore: (clientId: string) => { score: number; level: 'HEALTHY' | 'WARNING' | 'RISK'; label: string; reasons: string[] };
+
   refreshData: () => Promise<void>;
   resetAllProductionData: () => void;
 }
@@ -238,6 +260,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
 
+  const [proposals, setProposals] = useState<Proposal[]>(() => {
+    const saved = localStorage.getItem('webrajya_proposals');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [tickets, setTickets] = useState<SupportTicket[]>(() => {
+    const saved = localStorage.getItem('webrajya_tickets');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [clientDocuments, setClientDocuments] = useState<ClientDocument[]>(() => {
+    const saved = localStorage.getItem('webrajya_documents');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   // Force purge legacy demo data from user's browser localStorage on initial mount
   useEffect(() => {
     const PURGE_KEY = 'webrajya_demo_purge_v3';
@@ -261,31 +298,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Sync to local storage
   useEffect(() => {
     localStorage.setItem('webrajya_clients', JSON.stringify(clients));
-  }, [clients]);
-  useEffect(() => {
     localStorage.setItem('webrajya_products', JSON.stringify(products));
-  }, [products]);
-  useEffect(() => {
     localStorage.setItem('webrajya_plans', JSON.stringify(plans));
-  }, [plans]);
-  useEffect(() => {
     localStorage.setItem('webrajya_subscriptions', JSON.stringify(rawSubscriptions));
-  }, [rawSubscriptions]);
-  useEffect(() => {
     localStorage.setItem('webrajya_payments', JSON.stringify(payments));
-  }, [payments]);
-  useEffect(() => {
     localStorage.setItem('webrajya_reminders', JSON.stringify(reminders));
-  }, [reminders]);
-  useEffect(() => {
     localStorage.setItem('webrajya_events', JSON.stringify(events));
-  }, [events]);
-  useEffect(() => {
     localStorage.setItem('webrajya_notes', JSON.stringify(notes));
-  }, [notes]);
-  useEffect(() => {
     localStorage.setItem('webrajya_settings', JSON.stringify(settings));
-  }, [settings]);
+    localStorage.setItem('webrajya_proposals', JSON.stringify(proposals));
+    localStorage.setItem('webrajya_tickets', JSON.stringify(tickets));
+    localStorage.setItem('webrajya_documents', JSON.stringify(clientDocuments));
+  }, [clients, products, plans, rawSubscriptions, payments, reminders, events, notes, settings, proposals, tickets, clientDocuments]);
 
   // Load from Supabase if connected
   const refreshData = useCallback(async () => {
@@ -1232,6 +1256,183 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addToast('All demo and sample data wiped. Ready for production.', 'success');
   };
 
+  // Proposal Actions
+  const addProposal = async (proposalData: Omit<Proposal, 'id' | 'created_at' | 'updated_at' | 'proposal_number'>): Promise<Proposal> => {
+    const id = crypto.randomUUID();
+    const proposal_number = `WR-PROP-${String(proposals.length + 1).padStart(4, '0')}`;
+    const now = new Date().toISOString();
+    const newProposal: Proposal = {
+      ...proposalData,
+      id,
+      proposal_number,
+      created_at: now,
+      updated_at: now,
+    };
+    setProposals((prev) => [newProposal, ...prev]);
+    addToast(`Proposal ${proposal_number} created`, 'success');
+    return newProposal;
+  };
+
+  const updateProposal = async (id: string, updates: Partial<Proposal>) => {
+    setProposals((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...updates, updated_at: new Date().toISOString() } : p))
+    );
+    addToast('Proposal updated', 'success');
+  };
+
+  const deleteProposal = async (id: string) => {
+    setProposals((prev) => prev.filter((p) => p.id !== id));
+    addToast('Proposal deleted', 'info');
+  };
+
+  const convertProposalToSubscription = async (proposalId: string, startDate: string) => {
+    const prop = proposals.find((p) => p.id === proposalId);
+    if (!prop) return;
+
+    let clientId = prop.client_id;
+    if (!clientId) {
+      const newClient = await addClient({
+        business_name: prop.client_name,
+        owner_name: prop.client_name,
+        phone: prop.client_phone || null,
+        email: prop.client_email || null,
+        whatsapp: prop.client_phone || null,
+        address: null,
+        city: null,
+        state: null,
+        pincode: null,
+        gstin: null,
+        status: 'ACTIVE',
+        notes: `Converted from proposal ${prop.proposal_number}`,
+      });
+      clientId = newClient.id;
+    }
+
+    const defaultProduct = products[0] || SEED_PRODUCTS[0];
+    const defaultPlan = plans[0] || SEED_PLANS[0];
+
+    await addSubscription({
+      client_id: clientId,
+      product_id: defaultProduct.id,
+      plan_id: defaultPlan.id,
+      amount: prop.total_amount,
+      start_date: startDate,
+      notes: `Converted from Proposal #${prop.proposal_number}`,
+      payment_option: 'PENDING',
+    });
+
+    await updateProposal(proposalId, { status: 'ACCEPTED', client_id: clientId });
+    addToast(`Proposal #${prop.proposal_number} converted to Active Subscription!`, 'success');
+  };
+
+  // Support Ticket Actions
+  const addSupportTicket = async (ticketData: Omit<SupportTicket, 'id' | 'ticket_number' | 'created_at' | 'updated_at' | 'status'>): Promise<SupportTicket> => {
+    const id = crypto.randomUUID();
+    const ticket_number = `WR-TKT-${String(tickets.length + 1).padStart(4, '0')}`;
+    const now = new Date().toISOString();
+    const newTicket: SupportTicket = {
+      ...ticketData,
+      id,
+      ticket_number,
+      status: 'OPEN',
+      created_at: now,
+      updated_at: now,
+    };
+    setTickets((prev) => [newTicket, ...prev]);
+    addToast(`Support Ticket ${ticket_number} created`, 'success');
+    return newTicket;
+  };
+
+  const updateTicketStatus = async (id: string, status: any, admin_reply?: string) => {
+    setTickets((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              status,
+              admin_reply: admin_reply !== undefined ? admin_reply : t.admin_reply,
+              resolved_at: status === 'RESOLVED' || status === 'CLOSED' ? new Date().toISOString() : t.resolved_at,
+              updated_at: new Date().toISOString(),
+            }
+          : t
+      )
+    );
+    addToast(`Ticket status updated to ${status}`, 'success');
+  };
+
+  const deleteSupportTicket = async (id: string) => {
+    setTickets((prev) => prev.filter((t) => t.id !== id));
+    addToast('Ticket deleted', 'info');
+  };
+
+  // Client Documents Actions
+  const addClientDocument = async (docData: Omit<ClientDocument, 'id' | 'uploaded_at'>): Promise<ClientDocument> => {
+    const id = crypto.randomUUID();
+    const newDoc: ClientDocument = {
+      ...docData,
+      id,
+      uploaded_at: new Date().toISOString(),
+    };
+    setClientDocuments((prev) => [newDoc, ...prev]);
+    addToast(`Document '${docData.name}' uploaded to client file`, 'success');
+    return newDoc;
+  };
+
+  const deleteClientDocument = async (id: string) => {
+    setClientDocuments((prev) => prev.filter((d) => d.id !== id));
+    addToast('Document deleted', 'info');
+  };
+
+  // Health Score Predictor
+  const getClientHealthScore = (clientId: string) => {
+    const client = clients.find((c) => c.id === clientId);
+    if (!client) {
+      return { score: 100, level: 'HEALTHY' as const, label: 'Healthy', reasons: ['New account'] };
+    }
+
+    let score = 100;
+    const reasons: string[] = [];
+
+    const clientSubs = rawSubscriptions.filter((s) => s.client_id === clientId);
+    const clientTickets = tickets.filter((t) => t.client_id === clientId);
+
+    const hasExpired = clientSubs.some((s) => s.status === 'EXPIRED');
+    if (hasExpired) {
+      score -= 35;
+      reasons.push('Has 1 or more expired software licenses');
+    }
+
+    const totalDue = client.total_outstanding || 0;
+    if (totalDue > 10000) {
+      score -= 25;
+      reasons.push(`High outstanding dues: ₹${totalDue.toLocaleString()}`);
+    } else if (totalDue > 0) {
+      score -= 10;
+      reasons.push(`Pending dues: ₹${totalDue.toLocaleString()}`);
+    }
+
+    const openTickets = clientTickets.filter((t) => t.status === 'OPEN' || t.status === 'IN_PROGRESS').length;
+    if (openTickets > 0) {
+      score -= openTickets * 15;
+      reasons.push(`${openTickets} unresolved support ticket(s)`);
+    }
+
+    if (clientSubs.length === 0) {
+      score -= 20;
+      reasons.push('No active subscriptions linked');
+    }
+
+    score = Math.max(0, Math.min(100, score));
+
+    if (score >= 80) {
+      return { score, level: 'HEALTHY' as const, label: 'Healthy (Low Churn Risk)', reasons: reasons.length ? reasons : ['All payments on time & active licenses'] };
+    }
+    if (score >= 50) {
+      return { score, level: 'WARNING' as const, label: 'Moderate Concern', reasons };
+    }
+    return { score, level: 'RISK' as const, label: 'High Churn Risk', reasons };
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -1244,6 +1445,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         events,
         notes,
         settings,
+        proposals,
+        tickets,
+        clientDocuments,
         isSupabaseLive,
         isLoading,
         addClient,
@@ -1269,6 +1473,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         dismissReminder,
         markReminderSent,
         updateSettings,
+        addProposal,
+        updateProposal,
+        deleteProposal,
+        convertProposalToSubscription,
+        addSupportTicket,
+        updateTicketStatus,
+        deleteSupportTicket,
+        addClientDocument,
+        deleteClientDocument,
+        getClientHealthScore,
         refreshData,
         resetAllProductionData,
       }}

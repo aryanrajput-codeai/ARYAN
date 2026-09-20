@@ -19,6 +19,8 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { ClientPortalPage } from './pages/ClientPortalPage';
+import { ProposalsPage } from './pages/ProposalsPage';
+import { TicketsPage } from './pages/TicketsPage';
 
 export default function App() {
   return (
@@ -48,6 +50,8 @@ export default function App() {
                   <Route path="subscriptions" element={<SubscriptionsPage />} />
                   <Route path="payments" element={<PaymentsPage />} />
                   <Route path="renewals" element={<RenewalsPage />} />
+                  <Route path="proposals" element={<ProposalsPage />} />
+                  <Route path="tickets" element={<TicketsPage />} />
                   <Route path="products" element={<ProductsPage />} />
                   <Route path="reports" element={<ReportsPage />} />
                   <Route path="settings" element={<SettingsPage />} />

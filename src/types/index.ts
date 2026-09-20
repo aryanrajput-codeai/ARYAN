@@ -175,3 +175,68 @@ export interface BusinessSettings {
   receipt_prefix?: string;
   enabled_reminder_intervals: ReminderType[];
 }
+
+// Next-Gen Suite Types
+
+export type ProposalStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED';
+
+export interface ProposalItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+export interface Proposal {
+  id: string;
+  proposal_number: string;
+  client_id?: string | null;
+  client_name: string;
+  client_email?: string | null;
+  client_phone?: string | null;
+  title: string;
+  valid_until: string; // YYYY-MM-DD
+  items: ProposalItem[];
+  subtotal: number;
+  tax_amount: number;
+  total_amount: number;
+  status: ProposalStatus;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+
+  // Joined
+  client?: Client;
+}
+
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface SupportTicket {
+  id: string;
+  client_id: string;
+  ticket_number: string;
+  subject: string;
+  description: string;
+  priority: TicketPriority;
+  status: TicketStatus;
+  created_at: string;
+  updated_at: string;
+  resolved_at?: string | null;
+  admin_reply?: string | null;
+
+  // Joined
+  client?: Client;
+}
+
+export interface ClientDocument {
+  id: string;
+  client_id: string;
+  name: string;
+  file_type: string;
+  file_data: string; // base64 or URL
+  file_size?: number;
+  uploaded_at: string;
+}
+
