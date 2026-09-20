@@ -168,7 +168,7 @@ export const LaunchSplashScreen: React.FC<LaunchSplashScreenProps> = ({ onFinish
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#F7F8FA',
     zIndex: 999999,
     justifyContent: 'center',

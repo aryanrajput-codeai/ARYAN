@@ -397,7 +397,7 @@ export default function PinLockScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#F7F8FA',
     zIndex: 99999,
     justifyContent: 'space-between',
