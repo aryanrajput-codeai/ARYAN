@@ -44,357 +44,12 @@ const SEED_PLANS: Plan[] = [
   { id: 'c1000000-0000-0000-0000-000000000007', product_id: 'b1000000-0000-0000-0000-000000000005', name: 'Annual Hosting & Maintenance', duration_months: 12, price: 8000, description: 'Domain renewal, SSL, hosting, and quarterly changes', is_active: true, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
 ];
 
-const SEED_CLIENTS: Client[] = [
-  {
-    id: 'd1000000-0000-0000-0000-000000000001',
-    business_name: 'THE XINGS KITCHEN',
-    owner_name: 'Rahul Sharma',
-    phone: '+91 98220 11223',
-    whatsapp: '+91 98220 11223',
-    email: 'rahul@xingskitchen.in',
-    address: 'Shop 14, High Street, Baner',
-    city: 'Pune',
-    state: 'Maharashtra',
-    pincode: '411045',
-    gstin: '27AABCU9603R1ZM',
-    status: 'ACTIVE',
-    notes: 'Multi-cuisine restaurant using WebRajya POS on 2 terminals.',
-    created_at: '2023-10-19T10:00:00Z',
-    updated_at: '2026-09-15T14:20:00Z',
-  },
-  {
-    id: 'd1000000-0000-0000-0000-000000000002',
-    business_name: 'Brew & Bites Cafe',
-    owner_name: 'Priya Deshmukh',
-    phone: '+91 94230 55667',
-    whatsapp: '+91 94230 55667',
-    email: 'priya@brewandbites.com',
-    address: 'Lane 6, Koregaon Park',
-    city: 'Pune',
-    state: 'Maharashtra',
-    pincode: '411001',
-    gstin: '27BAPPD1234F1Z8',
-    status: 'ACTIVE',
-    notes: 'Specialty coffee bar with POS + QR Menu.',
-    created_at: '2026-01-15T11:00:00Z',
-    updated_at: '2026-01-15T11:00:00Z',
-  },
-  {
-    id: 'd1000000-0000-0000-0000-000000000003',
-    business_name: 'Apex Industrial Supplies',
-    owner_name: 'Vikramaditya Patil',
-    phone: '+91 99700 88990',
-    whatsapp: '+91 99700 88990',
-    email: 'v.patil@apexindustrial.co',
-    address: 'Plot 42, MIDC Bhosari',
-    city: 'Pimpri-Chinchwad',
-    state: 'Maharashtra',
-    pincode: '411026',
-    gstin: '27AACCA5678B1ZQ',
-    status: 'ACTIVE',
-    notes: 'Wholesale manufacturing using WebRajya Invoice.',
-    created_at: '2026-06-01T09:00:00Z',
-    updated_at: '2026-06-01T09:00:00Z',
-  },
-  {
-    id: 'd1000000-0000-0000-0000-000000000004',
-    business_name: 'Golden Harvest Supermart',
-    owner_name: 'Anand Kulkarni',
-    phone: '+91 98900 44332',
-    whatsapp: '+91 98900 44332',
-    email: 'anand@goldenharvest.in',
-    address: 'Station Road, Kothrud',
-    city: 'Pune',
-    state: 'Maharashtra',
-    pincode: '411038',
-    gstin: '27ABCFG7890C1ZW',
-    status: 'ACTIVE',
-    notes: 'Grocery retail store. 1 Year POS plan nearing expiry.',
-    created_at: '2025-09-26T10:00:00Z',
-    updated_at: '2026-09-10T11:00:00Z',
-  },
-  {
-    id: 'd1000000-0000-0000-0000-000000000005',
-    business_name: 'Royal Bakehouse & Cafe',
-    owner_name: 'Farhan Merchant',
-    phone: '+91 97650 33221',
-    whatsapp: '+91 97650 33221',
-    email: 'farhan@royalbakehouse.com',
-    address: 'MG Road, Camp',
-    city: 'Pune',
-    state: 'Maharashtra',
-    pincode: '411001',
-    gstin: null,
-    status: 'INACTIVE',
-    notes: 'Subscription expired 2 months ago; branch renovation in progress.',
-    created_at: '2025-06-15T12:00:00Z',
-    updated_at: '2026-06-15T12:00:00Z',
-  },
-];
-
-const SEED_SUBSCRIPTIONS: Subscription[] = [
-  {
-    id: 'e1000000-0000-0000-0000-000000000001',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    product_id: 'b1000000-0000-0000-0000-000000000001',
-    plan_id: 'c1000000-0000-0000-0000-000000000003',
-    amount: 15000,
-    start_date: '2023-10-19',
-    end_date: '2026-10-18',
-    status: 'EXPIRING_SOON',
-    auto_renew: false,
-    notes: '3 Year Plan expiring in 29 days; contacted Rahul regarding renewal.',
-    created_at: '2023-10-19T10:00:00Z',
-    updated_at: '2026-09-15T14:20:00Z',
-  },
-  {
-    id: 'e1000000-0000-0000-0000-000000000002',
-    client_id: 'd1000000-0000-0000-0000-000000000002',
-    product_id: 'b1000000-0000-0000-0000-000000000001',
-    plan_id: 'c1000000-0000-0000-0000-000000000002',
-    amount: 10000,
-    start_date: '2026-01-15',
-    end_date: '2028-01-14',
-    status: 'ACTIVE',
-    auto_renew: false,
-    notes: '2 Year POS plan in good standing.',
-    created_at: '2026-01-15T11:30:00Z',
-    updated_at: '2026-01-15T11:30:00Z',
-  },
-  {
-    id: 'e1000000-0000-0000-0000-000000000003',
-    client_id: 'd1000000-0000-0000-0000-000000000002',
-    product_id: 'b1000000-0000-0000-0000-000000000003',
-    plan_id: 'c1000000-0000-0000-0000-000000000006',
-    amount: 3500,
-    start_date: '2026-03-01',
-    end_date: '2027-02-28',
-    status: 'ACTIVE',
-    auto_renew: true,
-    notes: 'Digital menu QR setup for 25 tables.',
-    created_at: '2026-03-01T12:00:00Z',
-    updated_at: '2026-03-01T12:00:00Z',
-  },
-  {
-    id: 'e1000000-0000-0000-0000-000000000004',
-    client_id: 'd1000000-0000-0000-0000-000000000003',
-    product_id: 'b1000000-0000-0000-0000-000000000002',
-    plan_id: 'c1000000-0000-0000-0000-000000000005',
-    amount: 12000,
-    start_date: '2026-06-01',
-    end_date: '2029-05-31',
-    status: 'ACTIVE',
-    auto_renew: false,
-    notes: '3 Year Pro Invoicing.',
-    created_at: '2026-06-01T09:30:00Z',
-    updated_at: '2026-06-01T09:30:00Z',
-  },
-  {
-    id: 'e1000000-0000-0000-0000-000000000005',
-    client_id: 'd1000000-0000-0000-0000-000000000004',
-    product_id: 'b1000000-0000-0000-0000-000000000001',
-    plan_id: 'c1000000-0000-0000-0000-000000000001',
-    amount: 5000,
-    start_date: '2025-09-26',
-    end_date: '2026-09-25',
-    status: 'EXPIRING_SOON',
-    auto_renew: false,
-    notes: 'Renewal proposal shared via WhatsApp.',
-    created_at: '2025-09-26T10:15:00Z',
-    updated_at: '2026-09-10T11:00:00Z',
-  },
-  {
-    id: 'e1000000-0000-0000-0000-000000000006',
-    client_id: 'd1000000-0000-0000-0000-000000000005',
-    product_id: 'b1000000-0000-0000-0000-000000000001',
-    plan_id: 'c1000000-0000-0000-0000-000000000001',
-    amount: 5000,
-    start_date: '2025-06-15',
-    end_date: '2026-06-14',
-    status: 'EXPIRED',
-    auto_renew: false,
-    notes: 'Payment pending, client promised renewal next month.',
-    created_at: '2025-06-15T12:30:00Z',
-    updated_at: '2026-06-15T12:30:00Z',
-  },
-];
-
-const SEED_PAYMENTS: Payment[] = [
-  {
-    id: 'f1000000-0000-0000-0000-000000000001',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    subscription_id: 'e1000000-0000-0000-0000-000000000001',
-    amount: 15000,
-    payment_date: '2023-10-19',
-    payment_method: 'UPI',
-    transaction_reference: 'UPI/329201948201/XINGS',
-    receipt_number: 'WR-PAY-00001',
-    notes: 'Initial 3-Year subscription payment in full.',
-    created_at: '2023-10-19T10:15:00Z',
-    updated_at: '2023-10-19T10:15:00Z',
-  },
-  {
-    id: 'f1000000-0000-0000-0000-000000000002',
-    client_id: 'd1000000-0000-0000-0000-000000000002',
-    subscription_id: 'e1000000-0000-0000-0000-000000000002',
-    amount: 10000,
-    payment_date: '2026-01-15',
-    payment_method: 'BANK_TRANSFER',
-    transaction_reference: 'NEFT/HDFC0029104/BREW',
-    receipt_number: 'WR-PAY-00002',
-    notes: '2-Year POS license payment received.',
-    created_at: '2026-01-15T12:00:00Z',
-    updated_at: '2026-01-15T12:00:00Z',
-  },
-  {
-    id: 'f1000000-0000-0000-0000-000000000003',
-    client_id: 'd1000000-0000-0000-0000-000000000002',
-    subscription_id: 'e1000000-0000-0000-0000-000000000003',
-    amount: 3500,
-    payment_date: '2026-03-01',
-    payment_method: 'UPI',
-    transaction_reference: 'UPI/606110294812/PRIYA',
-    receipt_number: 'WR-PAY-00003',
-    notes: 'Annual digital menu subscription.',
-    created_at: '2026-03-01T12:30:00Z',
-    updated_at: '2026-03-01T12:30:00Z',
-  },
-  {
-    id: 'f1000000-0000-0000-0000-000000000004',
-    client_id: 'd1000000-0000-0000-0000-000000000003',
-    subscription_id: 'e1000000-0000-0000-0000-000000000004',
-    amount: 12000,
-    payment_date: '2026-06-01',
-    payment_method: 'BANK_TRANSFER',
-    transaction_reference: 'RTGS/ICIC9920194/APEX',
-    receipt_number: 'WR-PAY-00004',
-    notes: '3-Year Invoicing license payment.',
-    created_at: '2026-06-01T10:00:00Z',
-    updated_at: '2026-06-01T10:00:00Z',
-  },
-  {
-    id: 'f1000000-0000-0000-0000-000000000005',
-    client_id: 'd1000000-0000-0000-0000-000000000004',
-    subscription_id: 'e1000000-0000-0000-0000-000000000005',
-    amount: 3000,
-    payment_date: '2025-09-26',
-    payment_method: 'UPI',
-    transaction_reference: 'UPI/526910283741/ANAND',
-    receipt_number: 'WR-PAY-00005',
-    notes: 'Partial payment of ₹3,000 received. Balance ₹2,000.',
-    created_at: '2025-09-26T10:30:00Z',
-    updated_at: '2025-09-26T10:30:00Z',
-  },
-];
-
-const SEED_EVENTS: SubscriptionEvent[] = [
-  {
-    id: 'g1000000-0000-0000-0000-000000000001',
-    subscription_id: 'e1000000-0000-0000-0000-000000000001',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    event_type: 'SUBSCRIPTION_CREATED',
-    description: 'WebRajya POS 3-Year Enterprise subscription created (₹15,000)',
-    created_at: '2023-10-19T10:00:00Z',
-  },
-  {
-    id: 'g1000000-0000-0000-0000-000000000002',
-    subscription_id: 'e1000000-0000-0000-0000-000000000001',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    event_type: 'PAYMENT_RECEIVED',
-    description: 'Received payment ₹15,000 via UPI (WR-PAY-00001)',
-    created_at: '2023-10-19T10:15:00Z',
-  },
-  {
-    id: 'g1000000-0000-0000-0000-000000000003',
-    subscription_id: 'e1000000-0000-0000-0000-000000000001',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    event_type: 'REMINDER_SENT',
-    description: '30-Day Renewal Reminder sent to Rahul Sharma (+91 98220 11223)',
-    created_at: '2026-09-18T09:30:00Z',
-  },
-  {
-    id: 'g1000000-0000-0000-0000-000000000004',
-    subscription_id: 'e1000000-0000-0000-0000-000000000002',
-    client_id: 'd1000000-0000-0000-0000-000000000002',
-    event_type: 'SUBSCRIPTION_CREATED',
-    description: 'WebRajya POS 2-Year subscription created (₹10,000)',
-    created_at: '2026-01-15T11:30:00Z',
-  },
-  {
-    id: 'g1000000-0000-0000-0000-000000000005',
-    subscription_id: 'e1000000-0000-0000-0000-000000000002',
-    client_id: 'd1000000-0000-0000-0000-000000000002',
-    event_type: 'PAYMENT_RECEIVED',
-    description: 'Received payment ₹10,000 via Bank Transfer (WR-PAY-00002)',
-    created_at: '2026-01-15T12:00:00Z',
-  },
-];
-
-const SEED_NOTES: ClientNote[] = [
-  {
-    id: 'h1000000-0000-0000-0000-000000000001',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    note: 'Client requested kitchen printer integration upgrade alongside upcoming renewal.',
-    created_at: '2026-09-15T14:20:00Z',
-    updated_at: '2026-09-15T14:20:00Z',
-    author: 'Rajendra Verma (Admin)',
-  },
-  {
-    id: 'h1000000-0000-0000-0000-000000000002',
-    client_id: 'd1000000-0000-0000-0000-000000000004',
-    note: 'Followed up for balance payment of ₹2,000; Anand agreed to clear during renewal.',
-    created_at: '2026-09-10T11:00:00Z',
-    updated_at: '2026-09-10T11:00:00Z',
-    author: 'Sneha Kulkarni (Staff)',
-  },
-];
-
-const SEED_REMINDERS: Reminder[] = [
-  {
-    id: 'i1000000-0000-0000-0000-000000000001',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    subscription_id: 'e1000000-0000-0000-0000-000000000001',
-    reminder_type: '30_DAYS',
-    reminder_date: '2026-09-18',
-    status: 'SENT',
-    message: 'Renewal reminder: WebRajya POS expires on 18 Oct 2026',
-    sent_at: '2026-09-18T09:30:00Z',
-    created_at: '2023-10-19T10:00:00Z',
-  },
-  {
-    id: 'i1000000-0000-0000-0000-000000000002',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    subscription_id: 'e1000000-0000-0000-0000-000000000001',
-    reminder_type: '15_DAYS',
-    reminder_date: '2026-10-03',
-    status: 'PENDING',
-    message: 'Renewal reminder: WebRajya POS expires on 18 Oct 2026',
-    sent_at: null,
-    created_at: '2023-10-19T10:00:00Z',
-  },
-  {
-    id: 'i1000000-0000-0000-0000-000000000003',
-    client_id: 'd1000000-0000-0000-0000-000000000001',
-    subscription_id: 'e1000000-0000-0000-0000-000000000001',
-    reminder_type: '7_DAYS',
-    reminder_date: '2026-10-11',
-    status: 'PENDING',
-    message: 'Critical reminder: 7 days left for WebRajya POS license',
-    sent_at: null,
-    created_at: '2023-10-19T10:00:00Z',
-  },
-  {
-    id: 'i1000000-0000-0000-0000-000000000004',
-    client_id: 'd1000000-0000-0000-0000-000000000005',
-    subscription_id: 'e1000000-0000-0000-0000-000000000005',
-    reminder_type: '7_DAYS',
-    reminder_date: '2026-09-18',
-    status: 'SENT',
-    message: 'Urgent renewal: Golden Harvest POS expires on 25 Sep 2026',
-    sent_at: '2026-09-18T10:00:00Z',
-    created_at: '2025-09-26T10:15:00Z',
-  },
-];
+const SEED_CLIENTS: Client[] = [];
+const SEED_SUBSCRIPTIONS: Subscription[] = [];
+const SEED_PAYMENTS: Payment[] = [];
+const SEED_EVENTS: SubscriptionEvent[] = [];
+const SEED_NOTES: ClientNote[] = [];
+const SEED_REMINDERS: Reminder[] = [];
 
 const DEFAULT_SETTINGS: BusinessSettings = {
   business_name: 'WebRajya Solutions',
@@ -484,6 +139,7 @@ interface DataContextType {
   markReminderSent: (id: string) => Promise<void>;
   updateSettings: (newSettings: Partial<BusinessSettings>) => void;
   refreshData: () => Promise<void>;
+  resetAllProductionData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -1469,6 +1125,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addToast('Business settings saved', 'success');
   };
 
+  const resetAllProductionData = () => {
+    setClients([]);
+    setRawSubscriptions([]);
+    setPayments([]);
+    setReminders([]);
+    setEvents([]);
+    setNotes([]);
+
+    localStorage.removeItem('webrajya_clients');
+    localStorage.removeItem('webrajya_subscriptions');
+    localStorage.removeItem('webrajya_payments');
+    localStorage.removeItem('webrajya_reminders');
+    localStorage.removeItem('webrajya_events');
+    localStorage.removeItem('webrajya_notes');
+
+    addToast('All demo and sample data wiped. Ready for production.', 'success');
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -1505,6 +1179,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         markReminderSent,
         updateSettings,
         refreshData,
+        resetAllProductionData,
       }}
     >
       {children}
