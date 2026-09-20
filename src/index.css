@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #F4F5F7;
+    color: #171A21;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Custom clean scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
+}
+
+/* ==========================================
+   WEBRAJYA OFF-WHITE PREMIUM GLASS SYSTEM
+   ========================================== */
+
+/* Off-White Surface Cards */
+.glass-card, .surface-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #171A21;
+}
+
+.glass-card:hover, .surface-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+/* Glass Panels (Header, Navigation, Sidebar) */
+.glass-panel, .surface-panel {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  color: #171A21;
+}
+
+/* Glass Modals */
+.glass-modal, .surface-modal {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18);
+  color: #171A21;
+}
+
+/* Glass Inputs */
+.glass-input, .input-search {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  color: #171A21;
+  transition: all 0.2s ease;
+}
+
+.glass-input::placeholder, .input-search::placeholder {
+  color: #94A3B8;
+}
+
+.glass-input:focus, .input-search:focus {
+  background: #FFFFFF;
+  border-color: #5B5CE2;
+  box-shadow: 0 0 0 3px rgba(91, 92, 226, 0.14);
+  outline: none;
+}
+
+/* Buttons */
+.glass-btn-primary, .btn-primary {
+  background: #5B5CE2;
+  color: #FFFFFF;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(91, 92, 226, 0.25);
+  transition: all 0.2s ease;
+}
+
+.glass-btn-primary:hover, .btn-primary:hover {
+  background: #4B4CCB;
+  box-shadow: 0 6px 18px rgba(91, 92, 226, 0.35);
+  transform: translateY(-1px);
+}
+
+.glass-btn-secondary, .btn-secondary {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #171A21;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.glass-btn-secondary:hover, .btn-secondary:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+/* Mobile Bottom Navigation Dock */
+.mobile-control-center-dock, .bottom-nav-dock {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid #E2E8F0;
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}

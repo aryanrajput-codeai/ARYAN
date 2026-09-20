@@ -1,0 +1,195 @@
+import { ReminderType, SubscriptionStatus } from '../types';
+
+/**
+ * Format a Date object to YYYY-MM-DD
+ */
+export function formatDateISO(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Parse YYYY-MM-DD into a local Date (at 00:00:00)
+ */
+export function parseDateISO(str: string): Date {
+  if (!str) return new Date();
+  const parts = str.split('T')[0].split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+  }
+  return new Date(str);
+}
+
+/**
+ * Get current system date in YYYY-MM-DD format
+ */
+export function getTodayISO(): string {
+  return formatDateISO(new Date());
+}
+
+/**
+ * Add calendar months to a start date and subtract 1 day.
+ * Required formula: Start Date + Duration Months - 1 Day
+ * 
+ * Accurately handles:
+ * - 1, 12, 24, 36 months cycles
+ * - Leap years (e.g., 2024-02-29 + 12m ends 2025-02-28)
+ * - Month-end starts (e.g., Jan 31 + 1m ends Feb 28/29)
+ * - Anniversary days (e.g., 2026-09-19 + 36m ends 2029-09-18)
+ * - Timezone-safe local arithmetic
+ */
+export function calculateSubscriptionEndDate(startDateStr: string, durationMonths: number): string {
+  const startDate = parseDateISO(startDateStr);
+  const startYear = startDate.getFullYear();
+  const startMonth = startDate.getMonth();
+  const startDay = startDate.getDate();
+
+  // Determine target month and year
+  const totalMonths = startMonth + durationMonths;
+  const targetYear = startYear + Math.floor(totalMonths / 12);
+  const targetMonth = ((totalMonths % 12) + 12) % 12;
+
+  // Days in source and target month
+  const maxDaysInSourceMonth = new Date(startYear, startMonth + 1, 0).getDate();
+  const maxDaysInTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+  const isMonthEndStart = startDay === maxDaysInSourceMonth;
+
+  if (isMonthEndStart || startDay > maxDaysInTargetMonth) {
+    // If starting on a month end or the day exceeds target month length,
+    // the subscription period ends on the last day of target month.
+    // Example: Jan 31 + 1 mo ends Feb 28; next cycle begins March 1.
+    const endOfMonthDate = new Date(targetYear, targetMonth, maxDaysInTargetMonth);
+    return formatDateISO(endOfMonthDate);
+  }
+
+  // Exact anniversary day minus 1 day
+  // Example: 2026-09-19 + 36 mo -> 2029-09-19 minus 1 day = 2029-09-18
+  const anniversaryDate = new Date(targetYear, targetMonth, startDay);
+  const endDate = new Date(anniversaryDate);
+  endDate.setDate(endDate.getDate() - 1);
+
+  return formatDateISO(endDate);
+}
+
+/**
+ * Calculate the next renewal start date:
+ * If current subscription ends on `end_date`, new subscription begins on `end_date + 1 day`.
+ */
+export function calculateNextRenewalStartDate(currentEndDateStr: string): string {
+  const endDate = parseDateISO(currentEndDateStr);
+  const nextStart = new Date(endDate);
+  nextStart.setDate(nextStart.getDate() + 1);
+  return formatDateISO(nextStart);
+}
+
+/**
+ * Dynamically derive subscription status based on date criteria:
+ * end_date < today -> EXPIRED
+ * end_date >= today && end_date <= today + 30 days -> EXPIRING_SOON
+ * otherwise -> ACTIVE
+ */
+export function deriveSubscriptionStatus(
+  startDateStr: string,
+  endDateStr: string,
+  currentStatus?: SubscriptionStatus
+): SubscriptionStatus {
+  if (currentStatus === 'CANCELLED') {
+    return 'CANCELLED';
+  }
+
+  const todayStr = getTodayISO();
+  if (endDateStr < todayStr) {
+    return 'EXPIRED';
+  }
+
+  const today = parseDateISO(todayStr);
+  const in30Days = new Date(today);
+  in30Days.setDate(in30Days.getDate() + 30);
+  const in30DaysStr = formatDateISO(in30Days);
+
+  if (endDateStr <= in30DaysStr) {
+    return 'EXPIRING_SOON';
+  }
+
+  return 'ACTIVE';
+}
+
+/**
+ * Calculate remaining days until end date.
+ * Negative if already expired.
+ */
+export function calculateDaysRemaining(endDateStr: string): number {
+  const today = parseDateISO(getTodayISO());
+  const endDate = parseDateISO(endDateStr);
+  const diffTime = endDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+export const getDaysRemaining = calculateDaysRemaining;
+
+/**
+ * Format date for display: "19 Sep 2026"
+ */
+export function formatDateDisplay(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
+  const d = parseDateISO(dateStr);
+  return d.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+/**
+ * Format datetime for timeline: "19 Sep 2026, 02:30 PM"
+ */
+export function formatDateTimeDisplay(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * Format Indian Currency: ₹15,000
+ */
+export function formatCurrency(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || isNaN(amount)) return '₹0';
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
+
+/**
+ * Calculate reminder dates for a subscription
+ */
+export const REMINDER_OFFSETS: { type: ReminderType; daysBefore: number; label: string }[] = [
+  { type: '90_DAYS', daysBefore: 90, label: '90 Days Before Expiry' },
+  { type: '60_DAYS', daysBefore: 60, label: '60 Days Before Expiry' },
+  { type: '30_DAYS', daysBefore: 30, label: '30 Days Before Expiry' },
+  { type: '15_DAYS', daysBefore: 15, label: '15 Days Before Expiry' },
+  { type: '7_DAYS', daysBefore: 7, label: '7 Days Before Expiry' },
+  { type: '3_DAYS', daysBefore: 3, label: '3 Days Before Expiry' },
+  { type: '1_DAY', daysBefore: 1, label: '1 Day Before Expiry' },
+  { type: 'EXPIRY_DAY', daysBefore: 0, label: 'On Expiry Day' },
+];
+
+export function calculateReminderDate(endDateStr: string, daysBefore: number): string {
+  const endDate = parseDateISO(endDateStr);
+  const reminderDate = new Date(endDate);
+  reminderDate.setDate(reminderDate.getDate() - daysBefore);
+  return formatDateISO(reminderDate);
+}

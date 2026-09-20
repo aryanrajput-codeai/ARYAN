@@ -1,0 +1,7 @@
+{
+  "name": "WebRajya Subscription Manager",
+  "description": "Production-ready internal SaaS subscription and client management system for WebRajya.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
