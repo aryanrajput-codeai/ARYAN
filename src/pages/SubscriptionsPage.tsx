@@ -7,6 +7,8 @@ import {
   Filter,
   Download,
   MessageCircle,
+  FileText,
+  Trash2,
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { SubscriptionStatus, Subscription, Product } from '../types';
@@ -15,10 +17,11 @@ import { formatCurrency, formatDateDisplay, getDaysRemaining } from '../lib/date
 import { SubscriptionFormModal } from '../components/subscriptions/SubscriptionFormModal';
 import { RenewSubscriptionModal } from '../components/subscriptions/RenewSubscriptionModal';
 import { PaymentFormModal } from '../components/payments/PaymentFormModal';
+import { InvoiceModal } from '../components/payments/InvoiceModal';
 import { EmptyState } from '../components/common/EmptyState';
 
 export const SubscriptionsPage: React.FC = () => {
-  const { subscriptions, products, sendReminder } = useData();
+  const { subscriptions, products, sendReminder, deleteSubscription } = useData();
   const navigate = useNavigate();
 
   // Search & Filter State
@@ -31,6 +34,7 @@ export const SubscriptionsPage: React.FC = () => {
   const [isNewSubOpen, setIsNewSubOpen] = useState(false);
   const [renewSub, setRenewSub] = useState<Subscription | null>(null);
   const [paymentSub, setPaymentSub] = useState<Subscription | null>(null);
+  const [invoiceSub, setInvoiceSub] = useState<Subscription | null>(null);
 
   // Summary Metrics
   const activeCount = subscriptions.filter((s: Subscription) => s.status === 'ACTIVE').length;
@@ -310,6 +314,13 @@ export const SubscriptionsPage: React.FC = () => {
                       <td className="p-3.5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
+                            onClick={() => setInvoiceSub(sub)}
+                            title="Generate & Download Tax Invoice PDF"
+                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleSendReminder(sub)}
                             title="Send WhatsApp Expiry Reminder"
                             className="p-1.5 text-[#18A86B] hover:bg-[#EAF8F2] rounded-lg transition-colors"
@@ -330,6 +341,17 @@ export const SubscriptionsPage: React.FC = () => {
                             className="btn-secondary px-2.5 py-1 text-xs"
                           >
                             Renew
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to permanently delete this subscription record for ${sub.client?.business_name || 'this client'}?`)) {
+                                deleteSubscription(sub.id);
+                              }
+                            }}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Subscription Record"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -354,6 +376,11 @@ export const SubscriptionsPage: React.FC = () => {
         onClose={() => setPaymentSub(null)}
         preselectedClientId={paymentSub?.client_id}
         preselectedSubscriptionId={paymentSub?.id}
+      />
+      <InvoiceModal
+        isOpen={Boolean(invoiceSub)}
+        onClose={() => setInvoiceSub(null)}
+        subscription={invoiceSub}
       />
     </div>
   );

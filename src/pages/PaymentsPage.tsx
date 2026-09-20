@@ -12,18 +12,23 @@ import {
   Wallet,
   Ban,
   AlertTriangle,
+  FileText,
+  Trash2,
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Payment, PaymentMethod } from '../types';
 import { formatCurrency, formatDateDisplay } from '../lib/dateUtils';
+import { StatusBadge } from '../components/common/StatusBadge';
 import { PaymentFormModal } from '../components/payments/PaymentFormModal';
 import { ReceiptModal } from '../components/payments/ReceiptModal';
+import { InvoiceModal } from '../components/payments/InvoiceModal';
 import { EmptyState } from '../components/common/EmptyState';
 import { Modal } from '../components/common/Modal';
 
 export const PaymentsPage: React.FC = () => {
-  const { payments, voidPayment } = useData();
+  const { payments, voidPayment, deletePayment } = useData();
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -35,6 +40,7 @@ export const PaymentsPage: React.FC = () => {
   // Modals state
   const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Payment | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<Payment | null>(null);
   const [paymentToVoid, setPaymentToVoid] = useState<Payment | null>(null);
   const [voidReason, setVoidReason] = useState('');
   const [isVoiding, setIsVoiding] = useState(false);
@@ -377,6 +383,15 @@ export const PaymentsPage: React.FC = () => {
 
                       <td className="p-3.5 text-right space-x-2">
                         <button
+                          onClick={() => setSelectedInvoice(p)}
+                          className="btn-secondary px-2.5 py-1 text-xs inline-flex items-center gap-1 text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100"
+                          title="Generate & Download Tax Invoice PDF"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>Tax Invoice</span>
+                        </button>
+
+                        <button
                           onClick={() => setSelectedReceipt(p)}
                           className="btn-secondary px-2.5 py-1 text-xs inline-flex items-center gap-1"
                         >
@@ -392,12 +407,25 @@ export const PaymentsPage: React.FC = () => {
                               setVoidError(null);
                             }}
                             className="px-2.5 py-1 text-xs font-semibold text-[#D94B63] bg-[#FFF0F3] hover:bg-[#FFE1E6] rounded-xl border border-[#D94B63]/20 transition-colors inline-flex items-center gap-1"
-                            title="Void payment (Admin only)"
+                            title="Void payment"
                           >
                             <Ban className="w-3.5 h-3.5" />
                             <span>Void</span>
                           </button>
                         )}
+
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to permanently delete receipt #${p.receipt_number}?`)) {
+                              deletePayment(p.id);
+                            }
+                          }}
+                          className="px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition-colors inline-flex items-center gap-1"
+                          title="Permanently delete payment record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -484,6 +512,11 @@ export const PaymentsPage: React.FC = () => {
         isOpen={Boolean(selectedReceipt)}
         onClose={() => setSelectedReceipt(null)}
         payment={selectedReceipt}
+      />
+      <InvoiceModal
+        isOpen={Boolean(selectedInvoice)}
+        onClose={() => setSelectedInvoice(null)}
+        payment={selectedInvoice}
       />
     </div>
   );

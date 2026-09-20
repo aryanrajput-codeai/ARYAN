@@ -132,8 +132,10 @@ interface DataContextType {
   cancelSubscription: (id: string) => Promise<void>;
   sendReminder: (subscriptionId: string, channel?: 'WHATSAPP' | 'EMAIL' | 'SMS', actionStatus?: 'OPENED' | 'SENT') => Promise<void>;
 
+  deleteSubscription: (id: string) => Promise<void>;
   recordPayment: (params: RecordPaymentParams) => Promise<Payment>;
   voidPayment: (paymentId: string, reason: string) => Promise<void>;
+  deletePayment: (id: string) => Promise<void>;
   addClientNote: (client_id: string, note: string, author?: string) => Promise<ClientNote>;
   dismissReminder: (id: string) => Promise<void>;
   markReminderSent: (id: string) => Promise<void>;
@@ -1181,6 +1183,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [enrichedClients, subscriptions, enrichedPayments]
   );
 
+  const deletePayment = async (id: string) => {
+    setPayments((prev) => prev.filter((p) => p.id !== id));
+    if (isSupabaseLive) {
+      try {
+        await supabase.from('payments').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete payment error:', err);
+      }
+    }
+    addToast('Payment record deleted permanently', 'success');
+  };
+
+  const deleteSubscription = async (id: string) => {
+    setRawSubscriptions((prev) => prev.filter((s) => s.id !== id));
+    setPayments((prev) => prev.filter((p) => p.subscription_id !== id));
+    setReminders((prev) => prev.filter((r) => r.subscription_id !== id));
+    if (isSupabaseLive) {
+      try {
+        await supabase.from('subscriptions').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete subscription error:', err);
+      }
+    }
+    addToast('Subscription record deleted permanently', 'success');
+  };
+
   const updateSettings = (newSettings: Partial<BusinessSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
     addToast('Business settings saved', 'success');
@@ -1232,9 +1260,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addSubscription,
         renewSubscription,
         cancelSubscription,
+        deleteSubscription,
         sendReminder,
         recordPayment,
         voidPayment,
+        deletePayment,
         addClientNote,
         dismissReminder,
         markReminderSent,
