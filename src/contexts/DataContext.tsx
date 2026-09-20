@@ -142,6 +142,11 @@ interface DataContextType {
   resetAllProductionData: () => void;
 }
 
+const isLegacySeedId = (id?: string | null) => {
+  if (!id) return false;
+  return /^[d-i]1000000-0000-0000-0000-00000000000\d$/.test(id);
+};
+
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -152,7 +157,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize state with local storage fallback or default seed
   const [clients, setClients] = useState<Client[]>(() => {
     const saved = localStorage.getItem('webrajya_clients');
-    return saved ? JSON.parse(saved) : SEED_CLIENTS;
+    if (!saved) return SEED_CLIENTS;
+    try {
+      const parsed: Client[] = JSON.parse(saved);
+      return parsed.filter((c) => !isLegacySeedId(c.id));
+    } catch {
+      return SEED_CLIENTS;
+    }
   });
 
   const [products, setProducts] = useState<Product[]>(() => {
@@ -167,33 +178,83 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [rawSubscriptions, setRawSubscriptions] = useState<Subscription[]>(() => {
     const saved = localStorage.getItem('webrajya_subscriptions');
-    return saved ? JSON.parse(saved) : SEED_SUBSCRIPTIONS;
+    if (!saved) return SEED_SUBSCRIPTIONS;
+    try {
+      const parsed: Subscription[] = JSON.parse(saved);
+      return parsed.filter((s) => !isLegacySeedId(s.id) && !isLegacySeedId(s.client_id));
+    } catch {
+      return SEED_SUBSCRIPTIONS;
+    }
   });
 
   const [payments, setPayments] = useState<Payment[]>(() => {
     const saved = localStorage.getItem('webrajya_payments');
-    return saved ? JSON.parse(saved) : SEED_PAYMENTS;
+    if (!saved) return SEED_PAYMENTS;
+    try {
+      const parsed: Payment[] = JSON.parse(saved);
+      return parsed.filter((p) => !isLegacySeedId(p.id) && !isLegacySeedId(p.client_id));
+    } catch {
+      return SEED_PAYMENTS;
+    }
   });
 
   const [reminders, setReminders] = useState<Reminder[]>(() => {
     const saved = localStorage.getItem('webrajya_reminders');
-    return saved ? JSON.parse(saved) : SEED_REMINDERS;
+    if (!saved) return SEED_REMINDERS;
+    try {
+      const parsed: Reminder[] = JSON.parse(saved);
+      return parsed.filter((r) => !isLegacySeedId(r.id) && !isLegacySeedId(r.client_id));
+    } catch {
+      return SEED_REMINDERS;
+    }
   });
 
   const [events, setEvents] = useState<SubscriptionEvent[]>(() => {
     const saved = localStorage.getItem('webrajya_events');
-    return saved ? JSON.parse(saved) : SEED_EVENTS;
+    if (!saved) return SEED_EVENTS;
+    try {
+      const parsed: SubscriptionEvent[] = JSON.parse(saved);
+      return parsed.filter((e) => !isLegacySeedId(e.id) && !isLegacySeedId(e.client_id));
+    } catch {
+      return SEED_EVENTS;
+    }
   });
 
   const [notes, setNotes] = useState<ClientNote[]>(() => {
     const saved = localStorage.getItem('webrajya_notes');
-    return saved ? JSON.parse(saved) : SEED_NOTES;
+    if (!saved) return SEED_NOTES;
+    try {
+      const parsed: ClientNote[] = JSON.parse(saved);
+      return parsed.filter((n) => !isLegacySeedId(n.id) && !isLegacySeedId(n.client_id));
+    } catch {
+      return SEED_NOTES;
+    }
   });
 
   const [settings, setSettings] = useState<BusinessSettings>(() => {
     const saved = localStorage.getItem('webrajya_settings');
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
+
+  // Force purge legacy demo data from user's browser localStorage on initial mount
+  useEffect(() => {
+    const PURGE_KEY = 'webrajya_demo_purge_v3';
+    if (!localStorage.getItem(PURGE_KEY)) {
+      localStorage.removeItem('webrajya_clients');
+      localStorage.removeItem('webrajya_subscriptions');
+      localStorage.removeItem('webrajya_payments');
+      localStorage.removeItem('webrajya_reminders');
+      localStorage.removeItem('webrajya_events');
+      localStorage.removeItem('webrajya_notes');
+      setClients((prev) => prev.filter((c) => !isLegacySeedId(c.id)));
+      setRawSubscriptions((prev) => prev.filter((s) => !isLegacySeedId(s.id)));
+      setPayments((prev) => prev.filter((p) => !isLegacySeedId(p.id)));
+      setReminders((prev) => prev.filter((r) => !isLegacySeedId(r.id)));
+      setEvents((prev) => prev.filter((e) => !isLegacySeedId(e.id)));
+      setNotes((prev) => prev.filter((n) => !isLegacySeedId(n.id)));
+      localStorage.setItem(PURGE_KEY, 'true');
+    }
+  }, []);
 
   // Sync to local storage
   useEffect(() => {
