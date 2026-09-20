@@ -45,14 +45,14 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[999] overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             id="modal-backdrop"
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
             onClick={onClose}
           />
 
@@ -63,14 +63,14 @@ export const Modal: React.FC<ModalProps> = ({
             exit={{ opacity: 0, y: 30, scale: 0.98 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             id="modal-dialog"
-            className={`surface-modal rounded-t-2xl sm:rounded-2xl border border-[#E7E9EE] bg-white w-full ${maxWidthClasses} overflow-hidden relative z-10 shadow-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col`}
+            className={`surface-modal rounded-t-3xl sm:rounded-2xl border border-[#E7E9EE] bg-white w-full ${maxWidthClasses} overflow-hidden relative z-10 shadow-2xl max-h-[88vh] sm:max-h-[85vh] flex flex-col`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Mobile Drag Indicator */}
-            <div className="w-10 h-1 bg-[#E7E9EE] rounded-full mx-auto mt-2.5 sm:hidden" />
+            <div className="w-10 h-1 bg-[#E7E9EE] rounded-full mx-auto mt-2.5 sm:hidden shrink-0" />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E9EE] bg-[#F7F8FA]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E9EE] bg-[#F7F8FA] shrink-0">
               <div>
                 <h3 className="text-base font-semibold text-[#171A21]">{title}</h3>
                 {subtitle && <p className="text-xs text-[#687080] mt-0.5">{subtitle}</p>}
@@ -85,7 +85,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
 
             {/* Content Body */}
-            <div className="p-6 overflow-y-auto flex-1">{children}</div>
+            <div className="p-6 overflow-y-auto flex-1 pb-12 sm:pb-6">{children}</div>
           </motion.div>
         </div>
       )}

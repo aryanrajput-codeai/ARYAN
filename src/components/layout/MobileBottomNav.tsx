@@ -24,7 +24,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenSearch }
   ];
 
   return (
-    <div className="fixed bottom-4 left-3 right-3 z-50 md:hidden flex justify-center pointer-events-none pb-safe">
+    <div className="fixed bottom-4 left-3 right-3 z-30 md:hidden flex justify-center pointer-events-none pb-safe">
       <nav className="pointer-events-auto bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-full px-3.5 py-2 flex items-center justify-between gap-1 shadow-xl shadow-slate-900/10 max-w-md w-full">
         <div className="flex items-center justify-around flex-1">
           {items.map((item) => {
