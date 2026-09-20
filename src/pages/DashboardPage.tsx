@@ -110,15 +110,15 @@ export const DashboardPage: React.FC = () => {
       <div className="surface-card p-6 sm:p-8">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-[#687080] uppercase tracking-wider">
-            September revenue
+            Current Month Revenue
           </span>
-          <span className="text-xs font-semibold text-[#18A86B] bg-[#EAF8F2] px-2.5 py-1 rounded-full border border-[#18A86B]/15">
-            ↑ 12.4% vs last month
+          <span className="text-xs font-semibold text-[#5B5CE2] bg-[#EEF0FF] px-2.5 py-1 rounded-full border border-[#5B5CE2]/15">
+            Realized Collections
           </span>
         </div>
         <div className="mt-3 flex items-baseline gap-3">
           <span className="text-4xl sm:text-5xl font-extrabold text-[#171A21] tracking-tight">
-            {formatCurrency(monthlyRevenue || 185000)}
+            {formatCurrency(monthlyRevenue)}
           </span>
         </div>
       </div>
@@ -132,19 +132,19 @@ export const DashboardPage: React.FC = () => {
           <div className="pt-2 sm:pt-0">
             <span className="text-xs text-[#687080] block">Active Clients</span>
             <span className="text-2xl font-bold text-[#171A21] mt-1 block">
-              {activeClients || 5}
+              {activeClients}
             </span>
           </div>
           <div className="pt-4 sm:pt-0 sm:pl-6">
             <span className="text-xs text-[#687080] block">Active Licenses</span>
             <span className="text-2xl font-bold text-[#171A21] mt-1 block">
-              {activeSubscriptions || 3}
+              {activeSubscriptions}
             </span>
           </div>
           <div className="pt-4 sm:pt-0 sm:pl-6">
             <span className="text-xs text-[#687080] block">Outstanding Dues</span>
             <span className="text-2xl font-bold text-[#D94B63] mt-1 block">
-              {formatCurrency(totalOutstanding || 7000)}
+              {formatCurrency(totalOutstanding)}
             </span>
           </div>
         </div>
@@ -226,7 +226,12 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="divide-y divide-[#E7E9EE]">
-          {payments.slice(0, 4).map((pay: Payment) => (
+          {payments.length === 0 ? (
+            <div className="py-8 text-center text-xs text-[#9AA2B1]">
+              No payment receipts recorded yet.
+            </div>
+          ) : (
+            payments.slice(0, 4).map((pay: Payment) => (
             <div
               key={pay.id}
               className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0"
@@ -258,7 +263,8 @@ export const DashboardPage: React.FC = () => {
                 </button>
               </div>
             </div>
-          ))}
+          ))
+          )}
         </div>
       </div>
 
